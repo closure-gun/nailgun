@@ -117,6 +117,11 @@ public class NGServer implements Runnable {
     private Map allNailStats = null;
 
     /**
+     * Optional client password
+     */
+    private String password;
+
+    /**
      * Remember the security manager we start with so we can restore it later
      */
     private SecurityManager originalSecurityManager = null;
@@ -197,6 +202,15 @@ public class NGServer implements Runnable {
         // and definitely should be configurable in the future
         sessionCreator = new NGSessionCreator(this);
         this.heartbeatTimeoutMillis = timeoutMillis;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword()
+    {
+        return password;
     }
 
     /**
@@ -505,7 +519,7 @@ public class NGServer implements Runnable {
      */
     public static void main(String[] args) throws NumberFormatException, UnknownHostException {
 
-        if (args.length > 2) {
+        if (args.length > 3) {
             usage();
             return;
         }
@@ -516,7 +530,7 @@ public class NGServer implements Runnable {
         InetAddress serverAddress = null;
         int port = NGConstants.DEFAULT_PORT;
         int timeoutMillis = NGConstants.HEARTBEAT_TIMEOUT_MILLIS;
-
+        String password = null;
 
         // parse the command line parameters, which
         // may be an inetaddress to bind to, a port number,
@@ -543,12 +557,16 @@ public class NGServer implements Runnable {
             if (portPart != null) {
                 port = Integer.parseInt(portPart);
             }
-            if (args.length == 2) {
+            if (args.length >= 2) {
                 timeoutMillis = Integer.parseInt(args[1]);
+            }
+            if (args.length >= 3) {
+                password = args[2];
             }
         }
 
         NGServer server = new NGServer(serverAddress, port, timeoutMillis);
+        server.setPassword(password);
         server.start();
 
         // if the port is 0, it will be automatically determined.

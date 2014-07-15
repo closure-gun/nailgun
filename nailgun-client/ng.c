@@ -102,6 +102,7 @@
 #define CHUNKTYPE_EXIT 'X'
 #define CHUNKTYPE_SENDINPUT 'S'
 #define CHUNKTYPE_HEARTBEAT 'H'
+#define CHUNKTYPE_PASSWORD 'P'
 
 #define HEARTBEAT_TIMEOUT_MILLIS 500
 
@@ -638,6 +639,7 @@ void usage(int exitcode) {
   fprintf(stderr, "   --nailgun-port              to specify the port of the nailgun server\n");
   fprintf(stderr, "                               (default is NAILGUN_PORT environment variable\n");
   fprintf(stderr, "                               if set, otherwise 2113)\n");
+  fprintf(stderr, "   --nailgun-password SECRET   to specify optional password of the nailgun server\n");
   fprintf(stderr, "   --nailgun-filearg FILE      places the entire contents of FILE into the\n");
   fprintf(stderr, "                               next argument, which is interpreted as a string\n");
   fprintf(stderr, "                               using the server's default character set.  May be\n");
@@ -652,6 +654,7 @@ int main(int argc, char *argv[], char *env[]) {
   struct sockaddr_in server_addr;
   char *nailgun_server;        /* server as specified by user */
   char *nailgun_port;          /* port as specified by user */
+  char *nailgun_password=0;    /* password as specified by user */
   char *cwd;
   u_short port;                /* port */
   struct hostent *hostinfo;
@@ -720,7 +723,14 @@ int main(int argc, char *argv[], char *env[]) {
       nailgun_port = argv[i + 1];
       argv[i] = argv[i + 1]= NULL;
       ++i;
+    } else if(!strcmp("--nailgun-password", argv[i])) {
+      if (i == argc - 1) usage(NAILGUN_BAD_ARGUMENTS);
+      nailgun_password = argv[i + 1];
+      ++i;
     } else if (!strcmp("--nailgun-filearg", argv[i])) {
+      /* just verify usage here.  do the rest when sending args. */
+      if (i == argc - 1) usage (NAILGUN_BAD_ARGUMENTS);
+    } else if (!strcmp("--nailgun-password", argv[i])) {
       /* just verify usage here.  do the rest when sending args. */
       if (i == argc - 1) usage (NAILGUN_BAD_ARGUMENTS);
     } else if (!strcmp("--nailgun-version", argv[i])) {
@@ -774,6 +784,12 @@ int main(int argc, char *argv[], char *env[]) {
      arguments for the server, if any.  remember that we may have
      marked some arguments NULL if we read them to specify the
      nailgun server and/or port */
+
+  /* send password absolutely first, if it is set */
+  if (nailgun_password) {
+    sendText(CHUNKTYPE_PASSWORD, nailgun_password);
+  }
+
   for(i = firstArgIndex; i < argc; ++i) {
     if (argv[i] != NULL) {
       if (!strcmp("--nailgun-filearg", argv[i])) {
