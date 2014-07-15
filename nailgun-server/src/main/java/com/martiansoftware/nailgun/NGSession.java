@@ -17,10 +17,7 @@
  */
 package com.martiansoftware.nailgun;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
@@ -200,6 +197,26 @@ public class NGSession extends Thread {
 
                 String cwd = null;			// working directory
                 String command = null;		// alias or class name
+
+                // if password is required, it is the
+                if(server.getPassword()!=null)
+                {
+                    int bytesToRead = sockin.readInt();
+                    byte chunkType = sockin.readByte();
+
+                    byte[] b = new byte[(int) bytesToRead];
+                    sockin.readFully(b);
+                    String line = new String(b, "US-ASCII");
+
+                    if(!server.getPassword().equals(line))
+                    {
+                        // invalid password, close socket
+                        socket.close();
+                        sessionPool.give(this);
+                        socket = nextSocket();
+                        continue;
+                    }
+                }
 
                 // read everything from the client up to and including the command
                 while (command == null) {
