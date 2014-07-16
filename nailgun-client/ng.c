@@ -639,7 +639,6 @@ void usage(int exitcode) {
   fprintf(stderr, "   --nailgun-port              to specify the port of the nailgun server\n");
   fprintf(stderr, "                               (default is NAILGUN_PORT environment variable\n");
   fprintf(stderr, "                               if set, otherwise 2113)\n");
-  fprintf(stderr, "   --nailgun-password SECRET   to specify optional password of the nailgun server\n");
   fprintf(stderr, "   --nailgun-filearg FILE      places the entire contents of FILE into the\n");
   fprintf(stderr, "                               next argument, which is interpreted as a string\n");
   fprintf(stderr, "                               using the server's default character set.  May be\n");
@@ -686,6 +685,9 @@ int main(int argc, char *argv[], char *env[]) {
     nailgun_port = NAILGUN_PORT_DEFAULT;
   }
 
+  /* password is env only, otherwise it will leak through command arguments */
+  nailgun_password = getenv("NAILGUN_PASSWD");
+
   /* look at the command used to launch this program.  if it was "ng", then the actual
      command to issue to the server must be specified as another argument.  if it
      wasn't ng, assume that the desired command name was symlinked to ng in the user's
@@ -723,14 +725,7 @@ int main(int argc, char *argv[], char *env[]) {
       nailgun_port = argv[i + 1];
       argv[i] = argv[i + 1]= NULL;
       ++i;
-    } else if(!strcmp("--nailgun-password", argv[i])) {
-      if (i == argc - 1) usage(NAILGUN_BAD_ARGUMENTS);
-      nailgun_password = argv[i + 1];
-      ++i;
     } else if (!strcmp("--nailgun-filearg", argv[i])) {
-      /* just verify usage here.  do the rest when sending args. */
-      if (i == argc - 1) usage (NAILGUN_BAD_ARGUMENTS);
-    } else if (!strcmp("--nailgun-password", argv[i])) {
       /* just verify usage here.  do the rest when sending args. */
       if (i == argc - 1) usage (NAILGUN_BAD_ARGUMENTS);
     } else if (!strcmp("--nailgun-version", argv[i])) {
