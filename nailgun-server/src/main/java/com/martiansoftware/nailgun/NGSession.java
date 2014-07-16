@@ -198,7 +198,7 @@ public class NGSession extends Thread {
                 String cwd = null;			// working directory
                 String command = null;		// alias or class name
 
-                // if password is required, it is the
+                // if password is required, it is checked first
                 if(server.getPassword()!=null)
                 {
                     int bytesToRead = sockin.readInt();
