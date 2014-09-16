@@ -25,6 +25,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Iterator;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Map;
 
@@ -43,7 +44,7 @@ import java.util.Properties;
  */
 public class NGServer implements Runnable {
 
-    private static final Logger LOGGER = Logger.getLogger("NGServer");
+    private static final Logger LOGGER = Logger.getLogger(NGServer.class.toString());
 
     /**
      * The address on which to listen, or null to listen on all local addresses
@@ -319,7 +320,7 @@ public class NGServer implements Runnable {
             serversocket.close();
             LOGGER.fine("Closed server socket.");
         } catch (Throwable toDiscard) {
-            LOGGER.warning("Error closing server socket: " + toDiscard.getMessage());
+            LOGGER.log(Level.WARNING, "Error closing server socket: ", toDiscard);
         }
 
         // LOGGER.fine("Shut down session pool.");
@@ -351,7 +352,10 @@ public class NGServer implements Runnable {
                     nailShutdown.invoke(null, argValues);
                     LOGGER.fine(nailClass.getName() + ".nailShutdown() exited cleanly.");
                 } catch (Throwable toDiscard) {
-                    LOGGER.warning("Error calling nailShutdown() on " + nailClass.getName());
+                    LOGGER.log(
+                        Level.WARNING,
+                        "Error calling nailShutdown() on " + nailClass.getName(),
+                        toDiscard);
                 }
             }
         }
