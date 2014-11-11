@@ -17,6 +17,7 @@
  */
 package com.martiansoftware.nailgun;
 
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
@@ -45,6 +46,8 @@ import java.util.Properties;
 public class NGServer implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(NGServer.class.toString());
+    private static final String OUTPUT_PATH_PROPERTY =
+        "com.martiansoftware.nailgun.NGServer.outputPath";
 
     /**
      * The address on which to listen, or null to listen on all local addresses
@@ -95,7 +98,7 @@ public class NGServer implements Runnable {
     /**
      * <code>System.out</code> at the time of the NGServer's creation
      */
-    public final PrintStream out = System.out;
+    public final PrintStream out = getOutputStream();
 
     /**
      * <code>System.err</code> at the time of the NGServer's creation
@@ -157,6 +160,24 @@ public class NGServer implements Runnable {
      */
     public NGServer() {
         init(null, NGConstants.DEFAULT_PORT, NGConstants.HEARTBEAT_TIMEOUT_MILLIS);
+    }
+
+    private static PrintStream getOutputStream() {
+        String serverOutputPath = System.getProperty(OUTPUT_PATH_PROPERTY);
+        if (serverOutputPath != null) {
+            try {
+                return new PrintStream(
+                    new FileOutputStream(serverOutputPath),
+                    true,     // autoFlush
+                    "utf-8"); // encoding
+            } catch (Throwable throwable) {
+                LOGGER.log(
+                    Level.WARNING,
+                    "Could not open file " + serverOutputPath + " for writing",
+                    throwable);
+            }
+        }
+        return System.out;
     }
 
     /**
@@ -533,7 +554,7 @@ public class NGServer implements Runnable {
             runningPort = server.getPort();
         }
 
-        System.out.println("NGServer "
+        server.out.println("NGServer "
                 + NGConstants.VERSION
                 + " started on "
                 + ((serverAddress == null)
