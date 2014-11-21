@@ -186,7 +186,7 @@ public class NGSession extends Thread {
 
         updateThreadName(null);
 
-        LOGGER.fine("Waiting for first client connection.");
+        LOGGER.finer("Waiting for first client connection.");
         Socket socket = nextSocket();
         while (socket != null) {
             try {
@@ -265,7 +265,7 @@ public class NGSession extends Thread {
                     err = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_STDERR));
                     exit = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_EXIT));
 
-                    LOGGER.fine("Redirecting stdin, stdout, and stderr.");
+                    LOGGER.finer("Redirecting stdin, stdout, and stderr.");
 
                     // ThreadLocal streams for System.in/out/err redirection
                     ((ThreadLocalInputStream) System.in).init(in);
@@ -343,7 +343,13 @@ public class NGSession extends Thread {
                                     mainMethod.invoke(cmdclass.newInstance(), methodArgs);
                                 }
                             } catch (InvocationTargetException ite) {
-                                LOGGER.log(Level.SEVERE, "Got InvocationTargetException, rethrowing", e);
+                                Level level;
+                                if (ite.getCause() instanceof NGExitException) {
+                                  level = Level.FINER;
+                                } else {
+                                  level = Level.SEVERE;
+                                }
+                                LOGGER.log(level, "Got InvocationTargetException, rethrowing", ite);
                                 throw (ite.getCause());
                             } catch (InstantiationException e){
                                 LOGGER.log(Level.SEVERE, "Got InstantiationException, rethrowing", e);
@@ -352,7 +358,7 @@ public class NGSession extends Thread {
                                 LOGGER.log(Level.SEVERE, "Got IllegalAccessException, rethrowing", e);
                                 throw (e);
                             } catch (Throwable t) {
-                                LOGGER.log(Level.SEVERE, "Got Throwable, rethrowing", e);
+                                LOGGER.log(Level.SEVERE, "Got Throwable, rethrowing", t);
                                 throw (t);
                             } finally {
                                 LOGGER.fine("Nail finished.");
@@ -363,13 +369,13 @@ public class NGSession extends Thread {
                         }
 
                     } catch (NGExitException exitEx) {
-                        Level logLevel = (exitEx.getStatus() == 0) ? Level.FINE : Level.WARN;
+                        Level logLevel = (exitEx.getStatus() == 0) ? Level.FINER : Level.SEVERE;
                         LOGGER.log(logLevel, "Caught NGExitException, cleaning up session and writing exit command to client.", exitEx);
                         in.close();
                         exit.println(exitEx.getStatus());
                         server.out.println(Thread.currentThread().getName() + " exited with status " + exitEx.getStatus());
                     } catch (Throwable t) {
-                        LOGGER.log(Level.WARN, "Caught Throwable, cleaning up session and writing exit exception with status " + NGContext.EXIT_EXCEPTION + " to client.", t);
+                        LOGGER.log(Level.SEVERE, "Caught Throwable, cleaning up session and writing exit exception with status " + NGConstants.EXIT_EXCEPTION + " to client.", t);
                         in.close();
                         t.printStackTrace();
                         exit.println(NGConstants.EXIT_EXCEPTION); // remote exception constant
@@ -398,14 +404,14 @@ public class NGSession extends Thread {
                 t.printStackTrace();
             }
 
-            LOGGER.fine("Restoring stdin, stdout, and stderr.");
+            LOGGER.finer("Restoring stdin, stdout, and stderr.");
             ((ThreadLocalInputStream) System.in).init(null);
             ((ThreadLocalPrintStream) System.out).init(null);
             ((ThreadLocalPrintStream) System.err).init(null);
 
             updateThreadName(null);
             sessionCreator.give(this);
-            LOGGER.fine("Waiting for next client connection.");
+            LOGGER.finer("Waiting for next client connection.");
             socket = nextSocket();
         }
 
