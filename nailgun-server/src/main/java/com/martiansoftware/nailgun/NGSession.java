@@ -186,9 +186,11 @@ public class NGSession extends Thread {
 
         updateThreadName(null);
 
+        LOGGER.fine("Waiting for first client connection.");
         Socket socket = nextSocket();
         while (socket != null) {
             try {
+                LOGGER.fine("Received connection from " + socket.getInetAddress().getHostAddress());
                 DataInputStream sockin = new DataInputStream(socket.getInputStream());
                 DataOutputStream sockout = new DataOutputStream(socket.getOutputStream());
 
@@ -262,6 +264,8 @@ public class NGSession extends Thread {
                     out = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_STDOUT));
                     err = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_STDERR));
                     exit = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_EXIT));
+
+                    LOGGER.fine("Redirecting stdin, stdout, and stderr.");
 
                     // ThreadLocal streams for System.in/out/err redirection
                     ((ThreadLocalInputStream) System.in).init(in);
@@ -339,24 +343,33 @@ public class NGSession extends Thread {
                                     mainMethod.invoke(cmdclass.newInstance(), methodArgs);
                                 }
                             } catch (InvocationTargetException ite) {
+                                LOGGER.log(Level.SEVERE, "Got InvocationTargetException, rethrowing", e);
                                 throw (ite.getCause());
                             } catch (InstantiationException e){
+                                LOGGER.log(Level.SEVERE, "Got InstantiationException, rethrowing", e);
                                 throw (e);
                             } catch (IllegalAccessException e){
+                                LOGGER.log(Level.SEVERE, "Got IllegalAccessException, rethrowing", e);
                                 throw (e);
                             } catch (Throwable t) {
+                                LOGGER.log(Level.SEVERE, "Got Throwable, rethrowing", e);
                                 throw (t);
                             } finally {
+                                LOGGER.fine("Nail finished.");
                                 server.nailFinished(cmdclass);
                             }
+                            LOGGER.fine("Writing exit command with successful status 0 to client.");
                             exit.println(0);
                         }
 
                     } catch (NGExitException exitEx) {
+                        Level logLevel = (exitEx.getStatus() == 0) ? Level.FINE : Level.WARN;
+                        LOGGER.log(logLevel, "Caught NGExitException, cleaning up session and writing exit command to client.", exitEx);
                         in.close();
                         exit.println(exitEx.getStatus());
                         server.out.println(Thread.currentThread().getName() + " exited with status " + exitEx.getStatus());
                     } catch (Throwable t) {
+                        LOGGER.log(Level.WARN, "Caught Throwable, cleaning up session and writing exit exception with status " + NGContext.EXIT_EXCEPTION + " to client.", t);
                         in.close();
                         t.printStackTrace();
                         exit.println(NGConstants.EXIT_EXCEPTION); // remote exception constant
@@ -374,7 +387,9 @@ public class NGSession extends Thread {
                     if (exit != null) {
                         exit.close();
                     }
+                    LOGGER.fine("Flushing socket output stream.");
                     sockout.flush();
+                    LOGGER.fine("Closing client socket.");
                     socket.shutdownOutput();
                 }
 
@@ -383,12 +398,14 @@ public class NGSession extends Thread {
                 t.printStackTrace();
             }
 
+            LOGGER.fine("Restoring stdin, stdout, and stderr.");
             ((ThreadLocalInputStream) System.in).init(null);
             ((ThreadLocalPrintStream) System.out).init(null);
             ((ThreadLocalPrintStream) System.err).init(null);
 
             updateThreadName(null);
             sessionCreator.give(this);
+            LOGGER.fine("Waiting for next client connection.");
             socket = nextSocket();
         }
 
