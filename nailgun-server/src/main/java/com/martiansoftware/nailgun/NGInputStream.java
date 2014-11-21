@@ -92,11 +92,12 @@ public class NGInputStream extends FilterInputStream implements Closeable {
                         readHeaderFuture.get(heartbeatTimeoutMillis, TimeUnit.MILLISECONDS);
                     }
                 } catch (InterruptedException e) {
-                    LOGGER.log(Level.WARNING, "Got an InterruptedException - ignoring.", e);
+                    // Caused by readFuture.cancel(true).
+                    LOGGER.log(Level.FINER, "Got an InterruptedException - ignoring.", e);
                 } catch (ExecutionException e) {
-                    LOGGER.log(Level.WARNING, "Got an ExecutionException - ignoring.", e);
+                    LOGGER.log(Level.FINER, "Got an ExecutionException - ignoring.", e);
                 } catch (TimeoutException e) {
-                    LOGGER.log(Level.WARNING, "Got an ExecutionException - ignoring.", e);
+                    LOGGER.log(Level.SEVERE, "Got a TimeoutException - ignoring.", e);
                 } finally {
                     notifyClientListeners(serverLog, mainThread);
                     readEof();
@@ -159,7 +160,8 @@ public class NGInputStream extends FilterInputStream implements Closeable {
      */
     public synchronized void close() {
         readEof();
-		readFuture.cancel(true);
+        LOGGER.finer("close(): Cancelling read future, interrupting thread if necessary.");
+        readFuture.cancel(true);
         executor.shutdownNow();
 	}
 
