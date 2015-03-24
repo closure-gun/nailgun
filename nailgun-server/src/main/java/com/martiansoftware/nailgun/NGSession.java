@@ -248,7 +248,10 @@ public class NGSession extends Thread {
                 PrintStream exit = null;
 
                 try {
-                    in = new NGInputStream(sockin, sockout, server.out, heartbeatTimeoutMillis);
+                    NGInputStream ngin = new NGInputStream(sockin, sockout, server.out, heartbeatTimeoutMillis);
+                    ngin.addClientListener(new NGClientListener.Interrupter());
+
+                    in = ngin;
                     out = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_STDOUT));
                     err = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_STDERR));
                     exit = new PrintStream(new NGOutputStream(sockout, NGConstants.CHUNKTYPE_EXIT));

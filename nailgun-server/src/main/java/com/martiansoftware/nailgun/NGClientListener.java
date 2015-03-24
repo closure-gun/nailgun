@@ -8,4 +8,10 @@ public interface NGClientListener {
      * clientDisconnected throws an InterruptedException nailgun interrupts the main session thread.
      */
     public void clientDisconnected() throws InterruptedException;
+
+    public final class Interrupter implements  NGClientListener {
+        public void clientDisconnected() throws InterruptedException {
+            throw new InterruptedException();
+        }
+    }
 }
