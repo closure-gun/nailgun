@@ -1,20 +1,19 @@
 /*
+  Copyright 2004-2012, Martian Software, Inc.
 
- Copyright 2004-2012, Martian Software, Inc.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
 
- http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
- */
 package com.martiansoftware.nailgun;
 
 import java.io.*;
@@ -34,7 +33,6 @@ import java.util.logging.Logger;
  * @author <a href="http://www.martiansoftware.com/contact.html">Marty Lamb</a>
  */
 public class NGSession extends Thread {
-
     private static final Logger LOGGER = Logger.getLogger(NGSession.class.toString());
 
     /**
@@ -123,7 +121,7 @@ public class NGSession extends Thread {
         synchronized (sharedLock) {
             this.instanceNumber = ++instanceCounter;
         }
-//		server.out.println("Created NGSession " + instanceNumber);
+//    server.out.println("Created NGSession " + instanceNumber);
     }
 
     /**
@@ -195,12 +193,11 @@ public class NGSession extends Thread {
                 List remoteArgs = new java.util.ArrayList();
                 Properties remoteEnv = new Properties();
 
-                String cwd = null;			// working directory
-                String command = null;		// alias or class name
+                String cwd = null;      // working directory
+                String command = null;    // alias or class name
 
                 // if password is required, it is checked first
-                if(server.getPassword()!=null)
-                {
+                if (server.getPassword()!=null) {
                     int bytesToRead = sockin.readInt();
                     byte chunkType = sockin.readByte();
 
@@ -208,8 +205,7 @@ public class NGSession extends Thread {
                     sockin.readFully(b);
                     String line = new String(b, "US-ASCII");
 
-                    if(!server.getPassword().equals(line))
-                    {
+                    if (!server.getPassword().equals(line)) {
                         // invalid password, close socket
                         socket.close();
                         sessionPool.give(this);
@@ -229,37 +225,37 @@ public class NGSession extends Thread {
 
                     switch (chunkType) {
 
-                        case NGConstants.CHUNKTYPE_ARGUMENT:
-                            //	command line argument
-                            remoteArgs.add(line);
-                            LOGGER.fine("Received command line argument: " + line);
-                            break;
+                    case NGConstants.CHUNKTYPE_ARGUMENT:
+                        //  command line argument
+                        remoteArgs.add(line);
+                        LOGGER.fine("Received command line argument: " + line);
+                        break;
 
-                        case NGConstants.CHUNKTYPE_ENVIRONMENT:
-                            //	parse environment into property
-                            int equalsIndex = line.indexOf('=');
-                            if (equalsIndex > 0) {
-                                String key = line.substring(0, equalsIndex);
-                                String value = line.substring(equalsIndex + 1);
-                                remoteEnv.setProperty(key, value);
-                                LOGGER.finest("Setting env: key('" + key + "')=value('" + value + "').");
-                            }
-                            break;
+                    case NGConstants.CHUNKTYPE_ENVIRONMENT:
+                        //  parse environment into property
+                        int equalsIndex = line.indexOf('=');
+                        if (equalsIndex > 0) {
+                            String key = line.substring(0, equalsIndex);
+                            String value = line.substring(equalsIndex + 1);
+                            remoteEnv.setProperty(key, value);
+                            LOGGER.finest("Setting env: key('" + key + "')=value('" + value + "').");
+                        }
+                        break;
 
-                        case NGConstants.CHUNKTYPE_COMMAND:
-                            // 	command (alias or classname)
-                            command = line;
-                            LOGGER.fine("Received command: " + command);
-                            break;
+                    case NGConstants.CHUNKTYPE_COMMAND:
+                        //  command (alias or classname)
+                        command = line;
+                        LOGGER.fine("Received command: " + command);
+                        break;
 
-                        case NGConstants.CHUNKTYPE_WORKINGDIRECTORY:
-                            //	client working directory
-                            cwd = line;
-                            LOGGER.fine("Working directory: " + cwd);
-                            break;
+                    case NGConstants.CHUNKTYPE_WORKINGDIRECTORY:
+                        //  client working directory
+                        cwd = line;
+                        LOGGER.fine("Working directory: " + cwd);
+                        break;
 
-                        default:	// freakout?
-                            LOGGER.warning("Unknown chunk type: " + chunkType);
+                    default:  // freakout?
+                        LOGGER.warning("Unknown chunk type: " + chunkType);
                     }
                 }
 
@@ -308,15 +304,16 @@ public class NGSession extends Thread {
 
                         Class[] interfaces = cmdclass.getInterfaces();
 
-                        for (int i = 0; i < interfaces.length; i++){
-                            if (interfaces[i].equals(NonStaticNail.class)){
-                                isStaticNail = false; break;
+                        for (int i = 0; i < interfaces.length; i++) {
+                            if (interfaces[i].equals(NonStaticNail.class)) {
+                                isStaticNail = false;
+                                break;
                             }
                         }
 
-                        if (!isStaticNail){
+                        if (!isStaticNail) {
 
-                            mainMethod = cmdclass.getMethod("nailMain", new Class[]{ String[].class });
+                            mainMethod = cmdclass.getMethod("nailMain", new Class[] { String[].class });
                             methodArgs[0] = cmdlineArgs;
 
                         } else {
@@ -354,7 +351,7 @@ public class NGSession extends Thread {
                             NGSecurityManager.setExit(exit);
 
                             try {
-                                if (isStaticNail){
+                                if (isStaticNail) {
                                     mainMethod.invoke(null, methodArgs);
                                 } else {
                                     mainMethod.invoke(cmdclass.newInstance(), methodArgs);
@@ -362,21 +359,21 @@ public class NGSession extends Thread {
                             } catch (InvocationTargetException ite) {
                                 Level level;
                                 if (ite.getCause() instanceof NGExitException) {
-                                  level = Level.FINER;
+                                    level = Level.FINER;
                                 } else {
-                                  level = Level.SEVERE;
+                                    level = Level.SEVERE;
                                 }
                                 LOGGER.log(level, "Got InvocationTargetException, rethrowing", ite);
-                                throw (ite.getCause());
-                            } catch (InstantiationException e){
+                                throw(ite.getCause());
+                            } catch (InstantiationException e) {
                                 LOGGER.log(Level.SEVERE, "Got InstantiationException, rethrowing", e);
-                                throw (e);
-                            } catch (IllegalAccessException e){
+                                throw(e);
+                            } catch (IllegalAccessException e) {
                                 LOGGER.log(Level.SEVERE, "Got IllegalAccessException, rethrowing", e);
-                                throw (e);
+                                throw(e);
                             } catch (Throwable t) {
                                 LOGGER.log(Level.SEVERE, "Got Throwable, rethrowing", t);
-                                throw (t);
+                                throw(t);
                             } finally {
                                 LOGGER.fine("Nail finished.");
                                 server.nailFinished(cmdclass);
@@ -392,7 +389,8 @@ public class NGSession extends Thread {
                         exit.println(exitEx.getStatus());
                         server.out.println(Thread.currentThread().getName() + " exited with status " + exitEx.getStatus());
                     } catch (Throwable t) {
-                        LOGGER.log(Level.SEVERE, "Caught Throwable, cleaning up session and writing exit exception with status " + NGConstants.EXIT_EXCEPTION + " to client.", t);
+                        LOGGER.log(Level.SEVERE, "Caught Throwable, cleaning up session and writing exit exception with status " +
+                                   NGConstants.EXIT_EXCEPTION + " to client.", t);
                         in.close();
                         t.printStackTrace();
                         exit.println(NGConstants.EXIT_EXCEPTION); // remote exception constant
@@ -432,7 +430,7 @@ public class NGSession extends Thread {
             socket = nextSocket();
         }
 
-//		server.out.println("Shutdown NGSession " + instanceNumber);
+//    server.out.println("Shutdown NGSession " + instanceNumber);
     }
 
     /**

@@ -1,6 +1,5 @@
-/*   
-
-  Copyright 2004-2012, Jim Purbrick.
+/*
+  Copyright 2004-2012, Martian Software, Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -13,7 +12,6 @@
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   See the License for the specific language governing permissions and
   limitations under the License.
-
 */
 
 package com.martiansoftware.nailgun.examples;
@@ -26,11 +24,10 @@ import java.io.PrintStream;
 
 /**
  * Print one  hash per second to standard out while the client is running.
- * 
+ *
  * @author <a href="http://jimpurbrick.com">Jim Purbrick</a>
  */
 public class Heartbeat {
-
     /**
      * Registers a {@link com.martiansoftware.nailgun.NGClientListener} with the session then
      * loops forever printing hashes until
@@ -38,7 +35,7 @@ public class Heartbeat {
      * @param context the Nailgun context used to register the nail as a
      * {@link com.martiansoftware.nailgun.NGClientListener}.
      */
-	public static void nailMain(final NGContext context) throws IOException {
+    public static void nailMain(final NGContext context) throws IOException {
         try {
             // Register a new NGClientListener. As clientDisconnected is called from
             // another thread any nail state access must be properly synchronized.
@@ -50,13 +47,13 @@ public class Heartbeat {
 
             // Register a new NGHeartbeatListener. This is normally only used for debugging disconnection problems.
             context.addHeartbeatListener(new NGHeartbeatListener() {
-            public void heartbeatReceived(long intervalMillis) {
-                context.out.print("H");
-            }
-        });
+                public void heartbeatReceived(long intervalMillis) {
+                    context.out.print("H");
+                }
+            });
 
             // Loop printing a hash to the client every second until client disconnects.
-            while(! Thread.currentThread().isInterrupted()) {
+            while (! Thread.currentThread().isInterrupted()) {
                 Thread.sleep(5000);
                 context.out.print("S");
             }
@@ -64,5 +61,5 @@ public class Heartbeat {
             System.exit(42);
         }
         System.exit(0);
-	}
+    }
 }
