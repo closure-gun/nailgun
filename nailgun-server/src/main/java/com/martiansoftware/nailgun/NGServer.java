@@ -1,20 +1,19 @@
 /*
+  Copyright 2004-2012, Martian Software, Inc.
 
- Copyright 2004-2012, Martian Software, Inc.
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
 
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
 
- http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
-
- */
 package com.martiansoftware.nailgun;
 
 import java.io.FileOutputStream;
@@ -45,7 +44,6 @@ import java.util.Properties;
  * @author <a href="http://www.martiansoftware.com/contact.html">Marty Lamb</a>
  */
 public class NGServer implements Runnable {
-
     private static final Logger LOGGER = Logger.getLogger(NGServer.class.toString());
     private static final String OUTPUT_PATH_PROPERTY =
         "com.martiansoftware.nailgun.NGServer.outputPath";
@@ -173,9 +171,9 @@ public class NGServer implements Runnable {
         if (serverOutputPath != null) {
             try {
                 return new PrintStream(
-                    new FileOutputStream(serverOutputPath),
-                    true,     // autoFlush
-                    "utf-8"); // encoding
+                           new FileOutputStream(serverOutputPath),
+                           true,     // autoFlush
+                           "utf-8"); // encoding
             } catch (Throwable throwable) {
                 LOGGER.log(
                     Level.WARNING,
@@ -204,8 +202,7 @@ public class NGServer implements Runnable {
         this.heartbeatTimeoutMillis = timeoutMillis;
     }
 
-    public String getPassword()
-    {
+    public String getPassword() {
         return System.getenv("NAILGUN_PASSWORD");
     }
 
@@ -440,7 +437,7 @@ public class NGServer implements Runnable {
 
         originalSecurityManager = System.getSecurityManager();
         System.setSecurityManager(
-                new NGSecurityManager(
+            new NGSecurityManager(
                 originalSecurityManager));
 
 
@@ -573,14 +570,14 @@ public class NGServer implements Runnable {
         }
 
         String startMessage = "NGServer "
-                + NGConstants.VERSION
-                + " started on "
-                + ((serverAddress == null)
-                ? "all interfaces"
-                : serverAddress.getHostAddress())
-                + ", port "
-                + runningPort
-                + ".";
+                              + NGConstants.VERSION
+                              + " started on "
+                              + ((serverAddress == null)
+                                 ? "all interfaces"
+                                 : serverAddress.getHostAddress())
+                              + ", port "
+                              + runningPort
+                              + ".";
         LOGGER.fine(startMessage);
         server.out.println(startMessage);
     }
@@ -597,7 +594,6 @@ public class NGServer implements Runnable {
      * Lamb</a>
      */
     private static class NGServerShutdowner extends Thread {
-
         private NGServer server = null;
 
         NGServerShutdowner(NGServer server) {
