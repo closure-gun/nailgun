@@ -57,10 +57,11 @@
 	typedef unsigned int SOCKET;
 #endif
 
-#ifdef __APPLE__
-  #define SEND_FLAGS 0
-#else
-  #define SEND_FLAGS MSG_NOSIGNAL
+// MSG_NOSIGNAL does not exists on OS X
+#if defined(__APPLE__) || defined(__MACH__)
+# ifndef MSG_NOSIGNAL
+#   define MSG_NOSIGNAL SO_NOSIGPIPE
+# endif
 #endif
 
 #ifndef MIN
@@ -200,7 +201,7 @@ int sendAll(SOCKET s, char *buf, int len) {
   int n = 0;
 
   while(total < len) {
-    n = send(s, buf+total, bytesleft, SEND_FLAGS);
+    n = send(s, buf+total, bytesleft, MSG_NOSIGNAL);
 
     if (n == -1) {
       break;
