@@ -128,8 +128,8 @@ public class NGSession extends Thread {
      * Shuts down this NGSession gracefully
      */
     void shutdown() {
-        done = true;
         synchronized (lock) {
+            done = true;
             nextSocket = null;
             lock.notifyAll();
         }
