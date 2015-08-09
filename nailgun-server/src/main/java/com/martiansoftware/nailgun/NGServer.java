@@ -32,6 +32,7 @@ import java.util.Map;
 
 import com.martiansoftware.nailgun.builtins.DefaultNail;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <p>Listens for new connections from NailGun clients and launches NGSession
@@ -66,7 +67,7 @@ public class NGServer implements Runnable {
     /**
      * True if this NGServer has received instructions to shut down
      */
-    private boolean shutdown = false;
+    private AtomicBoolean shutdown = new AtomicBoolean(false);
 
     /**
      * True if this NGServer has been started and is accepting connections
@@ -340,11 +341,8 @@ public class NGServer implements Runnable {
      * by your nails.
      */
     public void shutdown(boolean exitVM) {
-        synchronized (this) {
-            if (shutdown) {
-                return;
-            }
-            shutdown = true;
+        if (!shutdown.compareAndSet(false, true)) {
+            return;
         }
 
         LOGGER.fine("Shutting down nailgun server.");
@@ -459,7 +457,7 @@ public class NGServer implements Runnable {
                 serversocket = new ServerSocket(port, 0, addr);
             }
 
-            while (!shutdown) {
+            while (!shutdown.get()) {
                 sessionOnDeck = sessionCreator.take();
                 Socket socket = serversocket.accept();
                 sessionOnDeck.run(socket);
@@ -469,7 +467,7 @@ public class NGServer implements Runnable {
             // if shutdown is called while the accept() method is blocking,
             // an exception will be thrown that we don't care about.  filter
             // those out.
-            if (!shutdown) {
+            if (!shutdown.get()) {
                 t.printStackTrace();
             }
         }
